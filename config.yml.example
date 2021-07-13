@@ -1,0 +1,51 @@
+
+#### EXPERIMENT PARAMETERS
+
+TENSORBOARD_LOG_DIR   : "/data-ssd/alex/experiments/slim_export/1608157217/log_dir"
+CHECKPOINT_DIR        : "/data-ssd/alex/experiments/slim_export/1608157217/checkpoints/ckpt"
+FINAL_SAVE_DIR        : "/data-ssd/alex/experiments/slim_export/1608157217/final_model/final"
+BACKUP_DIR            : "/data-ssd/alex/experiments/slim_export/1608157217/backup"
+
+
+#### DATASET PARAMETERS
+
+TRAINING_DATA         : "/data-ssd/alex/datasets/slim_export_20201213/train_cleaned.json"
+VAL_DATA              : "/data-ssd/alex/datasets/slim_export_20201213/val_cleaned.json"
+TEST_DATA             : "/data-ssd/alex/datasets/slim_export_20201213/test_cleaned.json"
+NUM_CLASSES           : 38148
+
+
+#### TRAINING PARAMETERS
+
+# training policy - only use mixed precision=true if you
+# have a recent NVIDIA GPU that supports CUDA 7.0 or later
+TRAIN_MIXED_PRECISION : True
+
+# size of batch, per gpu
+BATCH_SIZE            : 256
+
+# number of training epochs
+NUM_EPOCHS            : 80
+
+# initial learning rate for the model
+INITIAL_LEARNING_RATE : 0.05
+LR_DECAY_FACTOR       : 0.94
+EPOCHS_PER_LR_DECAY   : 4
+
+
+#### MODEL PARAMETERS
+
+# neural network architecture
+MODEL_NAME            : "xception"
+
+# size of input
+IMAGE_SIZE            : [299,299]
+
+# dropout percentage for layer between pool & logits
+DROPOUT_PCT           : 0.5
+
+# optiimzer
+OPTIMIZER_NAME        : "rmsprop"
+RMSPROP_RHO           : 0.9
+RMSPROP_MOMENTUM      : 0.9
+RMSPROP_EPSILON       : 1.0
