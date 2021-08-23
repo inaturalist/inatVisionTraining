@@ -55,9 +55,6 @@ def _process(file_path, label):
 
 def _load_dataframe(dataset_json_path):
     df = pd.read_json(dataset_json_path)
-    # convert the multitask_labels from [0,0] to 0
-    # since we don't use multitask labels currently
-    df['multitask_labels'] = df['multitask_labels'].apply(lambda x: x[0])
     
     # sort the dataset
     df = df.sample(frac=1, random_state=42)
