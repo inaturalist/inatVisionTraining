@@ -132,3 +132,6 @@ dmypy.json
 *.yml
 # results archives
 *.npz
+
+# pycharm / idea config
+.idea/
