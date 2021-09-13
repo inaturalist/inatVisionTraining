@@ -73,6 +73,11 @@ def main():
         policy = mixed_precision.Policy('mixed_float16')
         mixed_precision.set_policy(policy)
 
+    if config["MULTIGPU"]:
+        strategy = tf.distribute.MirroredStrategy()
+    else:
+        strategy = tf.distribute.get_strategy()
+
     # load train & val datasets
     if not os.path.exists(config["TRAINING_DATA"]):
         print("Training data file doesn't exist.")
@@ -108,54 +113,55 @@ def main():
         print("No val examples.")
         return
 
-    # create optimizer for neural network
-    optimizer = keras.optimizers.RMSprop(
-        lr=config["INITIAL_LEARNING_RATE"],
-        rho=config["RMSPROP_RHO"],
-        momentum=config["RMSPROP_MOMENTUM"],
-        epsilon=config["RMSPROP_EPSILON"]
-    )
+    with strategy.scope():
+        # create optimizer for neural network
+        optimizer = keras.optimizers.RMSprop(
+            lr=config["INITIAL_LEARNING_RATE"],
+            rho=config["RMSPROP_RHO"],
+            momentum=config["RMSPROP_MOMENTUM"],
+            epsilon=config["RMSPROP_EPSILON"]
+        )
 
-    # create neural network
-    model = nets.make_neural_network(
-        base_arch_name = "xception",
-        image_size = config["IMAGE_SIZE"],
-        dropout_pct = config["DROPOUT_PCT"],
-        n_classes = config["NUM_CLASSES"],
-        input_dtype = tf.float16 if config["TRAIN_MIXED_PRECISION"] else tf.float32,
-        train_full_network = True
-    )
-    if model is None:
-        print("No model to train.")
-        return
+        # create neural network
+        model = nets.make_neural_network(
+            base_arch_name = "xception",
+            image_size = config["IMAGE_SIZE"],
+            dropout_pct = config["DROPOUT_PCT"],
+            n_classes = config["NUM_CLASSES"],
+            input_dtype = tf.float16 if config["TRAIN_MIXED_PRECISION"] else tf.float32,
+            train_full_network = True
+        )
+        if model is None:
+            print("No model to train.")
+            return
 
-    # compile the network for training
-    model.compile(
-        loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-        optimizer=optimizer,
-        metrics=["accuracy"]
-    )
+        # compile the network for training
+        model.compile(
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+            optimizer=optimizer,
+            metrics=["accuracy"]
+        )
 
-    # setup callbacks
-    training_callbacks = make_training_callbacks(config)
+        # setup callbacks
+        training_callbacks = make_training_callbacks(config)
 
-    STEPS_PER_EPOCH = np.ceil(num_train_examples/config["BATCH_SIZE"])
-    VAL_STEPS = np.ceil(num_val_examples/config["BATCH_SIZE"])
+        STEPS_PER_EPOCH = np.ceil(num_train_examples/config["BATCH_SIZE"])
+        VAL_STEPS = np.ceil(num_val_examples/config["BATCH_SIZE"])
 
-    start = time.time()
-    history = model.fit(
-        train_ds,
-        validation_data=val_ds,
-        validation_steps=VAL_STEPS,
-        epochs=config["NUM_EPOCHS"],
-        steps_per_epoch=STEPS_PER_EPOCH,
-        callbacks=training_callbacks
-    )
+        start = time.time()
+        history = model.fit(
+            train_ds,
+            validation_data=val_ds,
+            validation_steps=VAL_STEPS,
+            epochs=config["NUM_EPOCHS"],
+            steps_per_epoch=STEPS_PER_EPOCH,
+            callbacks=training_callbacks
+        )
 
-    end = time.time()
-    print("time elapsed during fit: {:.1f}".format(end-start))
-    print(history.history)
-    model.save(config["FINAL_SAVE_DIR"])
+        end = time.time()
+        print("time elapsed during fit: {:.1f}".format(end-start))
+        print(history.history)
+        model.save(config["FINAL_SAVE_DIR"])
 
 
 if __name__ == "__main__":
