@@ -1,17 +1,13 @@
 import os
 import time
-import pandas as pd
 import numpy as np
 import argparse
 import yaml
-
-import json
 
 import tensorflow as tf
 from tensorflow import keras
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
-from datasets import inat_dataset
 from nets import nets
 
 
@@ -78,39 +74,46 @@ def main():
     else:
         strategy = tf.distribute.get_strategy()
 
-    # load train & val datasets
-    if not os.path.exists(config["TRAINING_DATA"]):
-        print("Training data file doesn't exist.")
+    # load train & val datasets from ImageDataGenerator
+    if not os.path.exists(config["TRAINING_DATA_DIR"]):
+        print("Training data directory doesn't exist.")
         return
-    (train_ds, num_train_examples) = inat_dataset.make_dataset(
-        config["TRAINING_DATA"],
-        image_size=config["IMAGE_SIZE"],
-        batch_size=config["BATCH_SIZE"],
-        repeat_forever=True,
-        augment=True
+    train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+        rescale=1./255,             # [0, 1], perhaps not best for xception?
+        rotation_range=40,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        fill_model="nearest"
     )
-    if train_ds is None:
+    train_generator = train_datagen.flow_from_directory(
+        config["TRAINING_DATA_DIR"],
+        target_size=config["IMAGE_SIZE"],
+        class_mode="sparse",
+        batch_size=config["BATCH_SIZE"],
+        follow_links=True
+    )
+    if train_generator is None:
         print("No training dataset.")
         return
-    if num_train_examples == 0:
-        print("No training examples.")
-        return
 
-    if not os.path.exists(config["VAL_DATA"]):
+    if not os.path.exists(config["VAL_DATA_DIR"]):
         print("Validation data file doesn't exist.")
         return
-    (val_ds, num_val_examples) = inat_dataset.make_dataset(
-        config["VAL_DATA"],
-        image_size=config["IMAGE_SIZE"],
-        batch_size=config["BATCH_SIZE"],
-        repeat_forever=True,
-        augment=False
+    val_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+        rescale = 1./255
     )
-    if val_ds is None:
-        print("No val dataset.")
-        return
-    if num_val_examples == 0:
-        print("No val examples.")
+    val_generator = val_datagen.flow_from_directory(
+        config["VAL_DATA_DIR"],
+        target_size=config["IMAGE_SIZE"],
+        class_mode="sparse",
+        batch_size=config["BATCH_SIZE"],
+        follow_links=True
+    )
+    if val_generator is None:
+        print("No validation dataset")
         return
 
     with strategy.scope():
@@ -123,14 +126,7 @@ def main():
         )
 
         # create neural network
-        model = nets.make_neural_network(
-            base_arch_name = "xception",
-            image_size = config["IMAGE_SIZE"],
-            dropout_pct = config["DROPOUT_PCT"],
-            n_classes = config["NUM_CLASSES"],
-            input_dtype = tf.float16 if config["TRAIN_MIXED_PRECISION"] else tf.float32,
-            train_full_network = True
-        )
+        model = nets.make_vanilla_xception(n_classes=config["NUM_CLASSES"])
         if model is None:
             print("No model to train.")
             return
@@ -150,17 +146,15 @@ def main():
 
         start = time.time()
         history = model.fit(
-            train_ds,
-            validation_data=val_ds,
-            validation_steps=VAL_STEPS,
+            train_generator,
+            validation_data=val_generator,
             epochs=config["NUM_EPOCHS"],
-            steps_per_epoch=STEPS_PER_EPOCH,
             callbacks=training_callbacks
         )
 
         end = time.time()
-        print("time elapsed during fit: {:.1f}".format(end-start))
         print(history.history)
+        print("time elapsed during fit: {:.1f}".format(end-start))
         model.save(config["FINAL_SAVE_DIR"])
 
 
