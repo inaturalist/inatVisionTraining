@@ -79,14 +79,14 @@ def main():
         print("Training data directory doesn't exist.")
         return
     train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-        rescale=1./255,             # [0, 1], perhaps not best for xception?
+        rescale=1/255.,
         rotation_range=40,
         width_shift_range=0.2,
         height_shift_range=0.2,
         shear_range=0.2,
         zoom_range=0.2,
         horizontal_flip=True,
-        fill_model="nearest"
+        fill_mode="nearest"
     )
     train_generator = train_datagen.flow_from_directory(
         config["TRAINING_DATA_DIR"],
@@ -126,7 +126,14 @@ def main():
         )
 
         # create neural network
-        model = nets.make_vanilla_xception(n_classes=config["NUM_CLASSES"])
+        model = nets.make_neural_network(
+            base_arch_name = "xception",
+            image_size = config["IMAGE_SIZE"],
+            dropout_pct = config["DROPOUT_PCT"],
+            n_classes = config["NUM_CLASSES"],
+            input_dtype = tf.float16 if config["TRAIN_MIXED_PRECISION"] else tf.float32,
+            train_full_network = True
+        )
         if model is None:
             print("No model to train.")
             return
@@ -140,9 +147,6 @@ def main():
 
         # setup callbacks
         training_callbacks = make_training_callbacks(config)
-
-        STEPS_PER_EPOCH = np.ceil(num_train_examples/config["BATCH_SIZE"])
-        VAL_STEPS = np.ceil(num_val_examples/config["BATCH_SIZE"])
 
         start = time.time()
         history = model.fit(
