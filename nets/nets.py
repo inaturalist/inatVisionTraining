@@ -1,10 +1,6 @@
 import tensorflow as tf
 from tensorflow import keras
 
-def make_vanilla_xception(n_classes):
-    model = keras.applications.Xception(classes=n_classes)
-    return model
-
 def make_neural_network(base_arch_name, image_size, dropout_pct, n_classes, input_dtype, train_full_network):
     image_size_with_channels = image_size + [3]
     base_arch = keras.applications.Xception if base_arch_name == "xception" else None
