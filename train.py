@@ -139,7 +139,11 @@ def main():
         model.compile(
             loss=tf.keras.losses.SparseCategoricalCrossentropy(),
             optimizer=optimizer,
-            metrics=["accuracy"]
+            metrics=[
+                "accuracy", 
+                tf.keras.metrics.SparseTopKCategoricalAccuracy(k=3, name="top3 accuracy"),
+                tf.keras.metrics.SparseTopKCategoricalAccuracy(k=10, name="top10 accuracy"),
+            ]
         )
 
         # setup callbacks
