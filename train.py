@@ -13,7 +13,7 @@ AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 from datasets import inat_dataset
 from nets import nets
-
+from metrics import make_parent_accuracy_metric
 
 def make_training_callbacks(config):
 
@@ -78,6 +78,16 @@ def main():
     else:
         strategy = tf.distribute.get_strategy()
 
+    # load the taxonomy
+    if not os.path.exists(config["TAXONOMY_FILE"]):
+        print("Taxonomy file doesn't exist.")
+        return
+    tax = pd.read_csv(config["TAXONOMY_FILE"])
+    leaf_tax = tax.dropna(subset=["leaf_class_id"])
+    # construct the list of parent taxon ids
+    # we'll use this for our custom parent accuracy metric
+    parent_taxon_ids = [int(x) for x in leaf_tax["parent_taxon_id"]]
+
     # load train & val datasets
     if not os.path.exists(config["TRAINING_DATA"]):
         print("Training data file doesn't exist.")
@@ -135,6 +145,8 @@ def main():
             print("No model to train.")
             return
 
+        parent_accuracy_metric = make_parent_accuracy_metric(parent_taxon_ids)
+        
         # compile the network for training
         model.compile(
             loss=tf.keras.losses.SparseCategoricalCrossentropy(),
@@ -143,6 +155,7 @@ def main():
                 "accuracy", 
                 tf.keras.metrics.SparseTopKCategoricalAccuracy(k=3, name="top3 accuracy"),
                 tf.keras.metrics.SparseTopKCategoricalAccuracy(k=10, name="top10 accuracy"),
+                parent_accuracy_metric,
             ]
         )
 
