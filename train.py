@@ -13,7 +13,7 @@ AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 from datasets import inat_dataset
 from nets import nets
-from metrics import make_parent_accuracy_metric
+from metrics import make_sparse_parent_accuracy_metric
 
 def make_training_callbacks(config):
 
@@ -145,7 +145,7 @@ def main():
             print("No model to train.")
             return
 
-        parent_accuracy_metric = make_parent_accuracy_metric(parent_taxon_ids)
+        parent_accuracy_metric = make_sparse_parent_accuracy_metric(parent_taxon_ids)
         
         # compile the network for training
         model.compile(
