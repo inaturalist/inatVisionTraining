@@ -1,6 +1,7 @@
 import pandas as pd
-
 import tensorflow as tf
+from functools import partial
+
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 # augments
@@ -47,15 +48,19 @@ def _decode_img(img):
     # we resize _after_ the augments pass
     return img
 
-def _process(file_path, label):
+def _process(file_path, label, num_classes):
     # load the raw data from the file as a string
     img = tf.io.read_file(file_path)
     img = _decode_img(img)
+    # 1 hot encode the label for dense
+    label = tf.one_hot(label, num_classes)
     return img, label
 
 def _load_dataframe(dataset_json_path):
     df = pd.read_json(dataset_json_path)
     
+    #df["multitask_labels"] = df["multitask_labels"].apply(lambda x: x[0])
+
     # sort the dataset
     df = df.sample(frac=1, random_state=42)
     return df
@@ -99,13 +104,15 @@ def _prepare_dataset(ds, image_size=(299,299), batch_size=32, repeat_forever=Tru
 def make_dataset(path, image_size=(299,299), batch_size=32, repeat_forever=True, augment=False):
     df = _load_dataframe(path)
     num_examples = len(df)
+    num_classes = len(df["label"].unique())
 
     ds = tf.data.Dataset.from_tensor_slices((
-        df['filename'],
-        df["multitask_labels"]
+        df["file"],
+        df["label"]
     ))
 
-    ds = ds.map(_process, num_parallel_calls=AUTOTUNE)
+    process_partial = partial(_process, num_classes=num_classes)
+    ds = ds.map(process_partial, num_parallel_calls=AUTOTUNE)
 
     ds = _prepare_dataset(
         ds,

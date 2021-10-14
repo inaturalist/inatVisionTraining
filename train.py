@@ -84,9 +84,9 @@ def main():
         return
     tax = pd.read_csv(config["TAXONOMY_FILE"])
     leaf_tax = tax.dropna(subset=["leaf_class_id"])
-    # construct the list of parent taxon ids
+    # construct the list of parent class ids
     # we'll use this for our custom parent accuracy metric
-    parent_taxon_ids = [int(x) for x in leaf_tax["parent_taxon_id"]]
+    parent_class_ids = [int(x) for x in leaf_tax["parent_taxon_id"]]
 
     # load train & val datasets
     if not os.path.exists(config["TRAINING_DATA"]):
@@ -141,20 +141,37 @@ def main():
             input_dtype = tf.float16 if config["TRAIN_MIXED_PRECISION"] else tf.float32,
             train_full_network = True
         )
+
         if model is None:
             print("No model to train.")
             return
 
-        parent_accuracy_metric = make_sparse_parent_accuracy_metric(parent_taxon_ids)
-        
+        parent_accuracy_metric = make_parent_accuracy_metric(parent_class_ids)
+       
+        if config["DO_LABEL_SMOOTH"]:
+            if config["LABEL_SMOOTH_MODE"] == "flat":
+                # with flat label smoothing we can do it all
+                # in the loss function
+                loss=tf.keras.losses.CategoricalCrossentropy(
+                    label_smoothing=config["LABEL_SMOOTH_PCT"]
+                )
+            else:
+                # with parent/heirarchical label smoothing
+                # we can't do it in the loss function, we have
+                # to adjust the labels in the dataset
+                print("Unsupported label smoothing mode.")
+                return
+        else:
+            loss=tf.keras.losses.CategoricalCrossentropy()
+
         # compile the network for training
         model.compile(
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+            loss=tf.keras.losses.CategoricalCrossentropy(),
             optimizer=optimizer,
             metrics=[
                 "accuracy", 
-                tf.keras.metrics.SparseTopKCategoricalAccuracy(k=3, name="top3 accuracy"),
-                tf.keras.metrics.SparseTopKCategoricalAccuracy(k=10, name="top10 accuracy"),
+                tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3 accuracy"),
+                tf.keras.metrics.TopKCategoricalAccuracy(k=10, name="top10 accuracy"),
                 parent_accuracy_metric,
             ]
         )
