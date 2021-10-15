@@ -135,12 +135,18 @@ def main():
         # create neural network
         model = nets.make_neural_network(
             base_arch_name = "xception",
+            weights = config["PRETRAINED_MODEL"],
             image_size = config["IMAGE_SIZE"],
             dropout_pct = config["DROPOUT_PCT"],
             n_classes = config["NUM_CLASSES"],
             input_dtype = tf.float16 if config["TRAIN_MIXED_PRECISION"] else tf.float32,
             train_full_network = True
         )
+
+        # load pretrained model
+        if False and config["PRETRAINED_MODEL"] != "imagenet" and os.path.exists(config["PRETRAINED_MODEL"]):
+            model.load_weights(config["PRETRAINED_MODEL"], by_name=True)
+
 
         if model is None:
             print("No model to train.")
