@@ -59,8 +59,6 @@ def _process(file_path, label, num_classes):
 def _load_dataframe(dataset_json_path):
     df = pd.read_json(dataset_json_path)
     
-    #df["multitask_labels"] = df["multitask_labels"].apply(lambda x: x[0])
-
     # sort the dataset
     df = df.sample(frac=1, random_state=42)
     return df
