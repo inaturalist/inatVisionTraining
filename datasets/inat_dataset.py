@@ -105,7 +105,7 @@ def make_dataset(path, image_size=(299,299), batch_size=32, repeat_forever=True,
     num_classes = len(df["labels"].unique())
 
     ds = tf.data.Dataset.from_tensor_slices((
-        df["file"],
+        df["filename"],
         df["labels"]
     ))
 
