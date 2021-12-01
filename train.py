@@ -159,7 +159,7 @@ def main():
 
         # compile the network for training
         model.compile(
-            loss=tf.keras.losses.CategoricalCrossentropy(),
+            loss=loss,
             optimizer=optimizer,
             metrics=[
                 "accuracy", 
