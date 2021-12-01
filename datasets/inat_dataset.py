@@ -62,11 +62,8 @@ def _load_dataframe(dataset_json_path):
     # sort the dataset
     df = df.sample(frac=1, random_state=42)
     return df
-
-def _prepare_dataset(ds, image_size=(299,299), batch_size=32, repeat_forever=True, shuffle_buffer_size=1000, augment=False):
-    # shuffle
-    ds = ds.shuffle(buffer_size=shuffle_buffer_size)
-
+ 
+def _prepare_dataset(ds, image_size=(299,299), batch_size=32, repeat_forever=True, shuffle_buffer_size=1000, augment=False):    
     # do transforms for augment or not
     if augment:
         # crop 100% of the time
@@ -99,15 +96,32 @@ def _prepare_dataset(ds, image_size=(299,299), batch_size=32, repeat_forever=Tru
     return ds
 
 
-def make_dataset(path, image_size=(299,299), batch_size=32, repeat_forever=True, augment=False):
+def make_dataset(path, image_size=(299,299), batch_size=32, label_column_name="labels", resample_dist=False, repeat_forever=True, augment=False):
     df = _load_dataframe(path)
+
     num_examples = len(df)
-    num_classes = len(df["labels"].unique())
+    num_classes = len(df[label_column_name].unique())
 
     ds = tf.data.Dataset.from_tensor_slices((
         df["filename"],
-        df["labels"]
+        df[label_column_name]
     ))
+
+    # we need to do complete shuffling in order to resample fairly
+    # as well as to do partial batches of validation data
+    ds = ds.shuffle(buffer_size=len(df))
+
+    if resample_dist:
+        initial_dist = list(df[label_column_name].value_counts().sort_index() / sum(df[label_column_name].value_counts()))
+
+        resampler = tf.data.experimental.rejection_resample(
+            class_func=lambda x, y: tf.cast(y, tf.int32),
+            target_dist=[1/num_classes]*num_classes,
+            initial_dist=initial_dist
+        )
+        ds = ds.apply(resampler)
+        ds = ds.map(lambda extra_label, features_and_label: features_and_label)
+
 
     process_partial = partial(_process, num_classes=num_classes)
     ds = ds.map(process_partial, num_parallel_calls=AUTOTUNE)
@@ -119,5 +133,7 @@ def make_dataset(path, image_size=(299,299), batch_size=32, repeat_forever=True,
         repeat_forever=repeat_forever,
         augment=augment
     )
+
+
 
     return (ds, num_examples)

@@ -8,12 +8,10 @@ import yaml
 import json
 
 import tensorflow as tf
-from tensorflow import keras
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 from datasets import inat_dataset
 from nets import nets
-from metrics import make_sparse_parent_accuracy_metric
 
 def make_training_callbacks(config):
 
@@ -22,7 +20,7 @@ def make_training_callbacks(config):
             tf.math.pow(config["LR_DECAY_FACTOR"], epoch//config["EPOCHS_PER_LR_DECAY"])
 
     callbacks = [
-        keras.callbacks.TensorBoard(
+        tf.keras.callbacks.TensorBoard(
             log_dir=config["TENSORBOARD_LOG_DIR"],
             histogram_freq=0,
             write_graph=False,
@@ -78,16 +76,6 @@ def main():
     else:
         strategy = tf.distribute.get_strategy()
 
-    # load the taxonomy
-    if not os.path.exists(config["TAXONOMY_FILE"]):
-        print("Taxonomy file doesn't exist.")
-        return
-    tax = pd.read_csv(config["TAXONOMY_FILE"])
-    leaf_tax = tax.dropna(subset=["leaf_class_id"])
-    # construct the list of parent class ids
-    # we'll use this for our custom parent accuracy metric
-    parent_class_ids = [int(x) for x in leaf_tax["parent_taxon_id"]]
-
     # load train & val datasets
     if not os.path.exists(config["TRAINING_DATA"]):
         print("Training data file doesn't exist.")
@@ -96,6 +84,8 @@ def main():
         config["TRAINING_DATA"],
         image_size=config["IMAGE_SIZE"],
         batch_size=config["BATCH_SIZE"],
+        label_column_name=config["LABEL_COLUMN_NAME"],
+        resample_dist=config["RESAMPLE_TRAIN"],
         repeat_forever=True,
         augment=True
     )
@@ -113,6 +103,8 @@ def main():
         config["VAL_DATA"],
         image_size=config["IMAGE_SIZE"],
         batch_size=config["BATCH_SIZE"],
+        label_column_name=config["LABEL_COLUMN_NAME"],
+        resample_dist=False,
         repeat_forever=True,
         augment=False
     )
@@ -125,8 +117,8 @@ def main():
 
     with strategy.scope():
         # create optimizer for neural network
-        optimizer = keras.optimizers.RMSprop(
-            lr=config["INITIAL_LEARNING_RATE"],
+        optimizer = tf.keras.optimizers.RMSprop(
+            learning_rate=config["INITIAL_LEARNING_RATE"],
             rho=config["RMSPROP_RHO"],
             momentum=config["RMSPROP_MOMENTUM"],
             epsilon=config["RMSPROP_EPSILON"]
@@ -152,8 +144,6 @@ def main():
             print("No model to train.")
             return
 
-        parent_accuracy_metric = make_parent_accuracy_metric(parent_class_ids)
-       
         if config["DO_LABEL_SMOOTH"]:
             if config["LABEL_SMOOTH_MODE"] == "flat":
                 # with flat label smoothing we can do it all
@@ -165,8 +155,7 @@ def main():
                 # with parent/heirarchical label smoothing
                 # we can't do it in the loss function, we have
                 # to adjust the labels in the dataset
-                print("Unsupported label smoothing mode.")
-                return
+                assert(False, "Unsupported label smoothing mode.")
         else:
             loss=tf.keras.losses.CategoricalCrossentropy()
 
@@ -177,16 +166,19 @@ def main():
             metrics=[
                 "accuracy", 
                 tf.keras.metrics.TopKCategoricalAccuracy(k=3, name="top3 accuracy"),
-                tf.keras.metrics.TopKCategoricalAccuracy(k=10, name="top10 accuracy"),
-                parent_accuracy_metric,
+                tf.keras.metrics.TopKCategoricalAccuracy(k=10, name="top10 accuracy")
             ]
         )
 
         # setup callbacks
         training_callbacks = make_training_callbacks(config)
 
-        STEPS_PER_EPOCH = np.ceil(num_train_examples/config["BATCH_SIZE"])
+        # TODO: calculate this instead of hard setting it
+        STEPS_PER_EPOCH = np.ceil(14_000/config["BATCH_SIZE"])
         VAL_STEPS = np.ceil(num_val_examples/config["BATCH_SIZE"])
+        # expressed in terms of steps, not images
+        # so this * BATCH_SIZE is the # of val images evaluated per epoch
+        VAL_STEPS = config["VAL_STEPS_PER_EPOCH"]
 
         start = time.time()
         history = model.fit(
