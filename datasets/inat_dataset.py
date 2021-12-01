@@ -99,14 +99,14 @@ def _prepare_dataset(ds, image_size=(299,299), batch_size=32, repeat_forever=Tru
     return ds
 
 
-def make_dataset(path, image_size=(299,299), batch_size=32, repeat_forever=True, augment=False):
+def make_dataset(path, label_column_name, image_size=(299,299), batch_size=32, repeat_forever=True, augment=False):
     df = _load_dataframe(path)
     num_examples = len(df)
-    num_classes = len(df["labels"].unique())
+    num_classes = len(df[label_column_name].unique())
 
     ds = tf.data.Dataset.from_tensor_slices((
         df["filename"],
-        df["labels"]
+        df[label_column_name]
     ))
 
     process_partial = partial(_process, num_classes=num_classes)

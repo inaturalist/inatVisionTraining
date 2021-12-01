@@ -83,6 +83,7 @@ def main():
         return
     (train_ds, num_train_examples) = inat_dataset.make_dataset(
         config["TRAINING_DATA"],
+        label_column_name=config["LABEL_COLUMN_NAME"],
         image_size=config["IMAGE_SIZE"],
         batch_size=config["BATCH_SIZE"],
         repeat_forever=True,
@@ -100,6 +101,7 @@ def main():
         return
     (val_ds, num_val_examples) = inat_dataset.make_dataset(
         config["VAL_DATA"],
+        label_column_name=config["LABEL_COLUMN_NAME"],
         image_size=config["IMAGE_SIZE"],
         batch_size=config["BATCH_SIZE"],
         repeat_forever=True,
