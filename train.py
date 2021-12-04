@@ -173,12 +173,15 @@ def main():
         # setup callbacks
         training_callbacks = make_training_callbacks(config)
 
-        # TODO: calculate this instead of hard setting it
-        STEPS_PER_EPOCH = np.ceil(14_000/config["BATCH_SIZE"])
-        VAL_STEPS = np.ceil(num_val_examples/config["BATCH_SIZE"])
-        # expressed in terms of steps, not images
-        # so this * BATCH_SIZE is the # of val images evaluated per epoch
-        VAL_STEPS = config["VAL_STEPS_PER_EPOCH"]
+        # currently calculating this by hand, not sure it's optimal
+        # calculation is: for taxa with <= 1k photos, include them all
+        # in steps per epoch, for taxa with > 1k photos, include 1k
+        # steps per epoch, then divide by batch size.
+        STEPS_PER_EPOCH = 479972 / config["BATCH_SIZE"]
+        if "VAL_STEPS_PER_EPOCH" in config:
+            VAL_STEPS = config["VAL_STEPS_PER_EPOCH"]
+        else:
+            VAL_STEPS = np.ceil(num_val_examples/config["BATCH_SIZE"])
 
         start = time.time()
         history = model.fit(
