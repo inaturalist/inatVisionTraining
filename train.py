@@ -82,6 +82,7 @@ def main():
         return
     (train_ds, num_train_examples) = inat_dataset.make_dataset(
         config["TRAINING_DATA"],
+        label_column_name=config["LABEL_COLUMN_NAME"],
         image_size=config["IMAGE_SIZE"],
         batch_size=config["BATCH_SIZE"],
         label_column_name=config["LABEL_COLUMN_NAME"],
@@ -101,6 +102,7 @@ def main():
         return
     (val_ds, num_val_examples) = inat_dataset.make_dataset(
         config["VAL_DATA"],
+        label_column_name=config["LABEL_COLUMN_NAME"],
         image_size=config["IMAGE_SIZE"],
         batch_size=config["BATCH_SIZE"],
         label_column_name=config["LABEL_COLUMN_NAME"],
@@ -161,7 +163,7 @@ def main():
 
         # compile the network for training
         model.compile(
-            loss=tf.keras.losses.CategoricalCrossentropy(),
+            loss=loss,
             optimizer=optimizer,
             metrics=[
                 "accuracy", 

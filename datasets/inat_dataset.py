@@ -96,7 +96,7 @@ def _prepare_dataset(ds, image_size=(299,299), batch_size=32, repeat_forever=Tru
     return ds
 
 
-def make_dataset(path, image_size=(299,299), batch_size=32, label_column_name="labels", resample_dist=False, repeat_forever=True, augment=False):
+def make_dataset(path, label_column_name, image_size=(299,299), batch_size=32, resample_dist=False, repeat_forever=True, augment=False):
     df = _load_dataframe(path)
 
     num_examples = len(df)
