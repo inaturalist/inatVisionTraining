@@ -41,7 +41,7 @@ def main():
         config = yaml.safe_load(f)
 
     # check if save_file and save_results are both flagged
-    if "should_save_results" in vars(args) and "save_file" not in vars(args):
+    if args.should_save_results and args.save_file is None:
         parser.error(
             "the --should_save_results argument requires the --save_file argument."
         )
@@ -84,10 +84,22 @@ def main():
         ],
     )
 
-    if should_save_results:
-        # not implemented yet
-        print("not implemented")
-        return
+    if args.should_save_results:
+        all_true = np.array([])
+        all_yhat = np.array([])
+
+        for x, y in tqdm(test_ds):
+            dense_y = np.argmax(y, axis=1)
+            all_true = np.append(all_true, dense_y)
+            yhat = np.argmax(model.predict(x), axis=1)
+            all_yhat = np.append(all_yhat, yhat)
+        
+        np.savez_compressed(
+            args.save_file,
+            all_true=all_true,
+            all_yhat=all_yhat
+        )
+            
     else:
         # the simpler approach, simply eval the test dataset
         model.evaluate(test_ds)
