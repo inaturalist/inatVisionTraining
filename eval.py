@@ -69,7 +69,7 @@ def main():
     # load the model
     model = tf.keras.applications.Xception(weights=None, classes=config["NUM_CLASSES"])
     if model is None:
-        assert (False, "No model to train.")
+        assert False, "No model to train."
 
     model.load_weights(config["FINAL_SAVE_DIR"]).expect_partial()
 
