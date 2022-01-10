@@ -93,13 +93,9 @@ def main():
             all_true = np.append(all_true, dense_y)
             yhat = np.argmax(model.predict(x), axis=1)
             all_yhat = np.append(all_yhat, yhat)
-        
-        np.savez_compressed(
-            args.save_file,
-            all_true=all_true,
-            all_yhat=all_yhat
-        )
-            
+
+        np.savez_compressed(args.save_file, all_true=all_true, all_yhat=all_yhat)
+
     else:
         # the simpler approach, simply eval the test dataset
         model.evaluate(test_ds)
