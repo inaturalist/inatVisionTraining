@@ -23,6 +23,11 @@ def main():
         "--config_file", required=True, help="YAML config file for training."
     )
     parser.add_argument(
+        "--use_checkpoint",
+        action="store_true",
+        help="yes if use checkpoint, no if use final export",
+    )
+    parser.add_argument(
         "--should_save_results",
         action="store_true",
         help="Save the results from the eval? If yes, --save_file is required.",
@@ -71,7 +76,11 @@ def main():
     if model is None:
         assert False, "No model to train."
 
-    model.load_weights(config["FINAL_SAVE_DIR"]).expect_partial()
+    # load the weights
+    weights = (
+        config["CHECKPOINT_DIR"] if args.use_checkpoint else config["FINAL_SAVE_DIR"]
+    )
+    model.load_weights(weights).expect_partial()
 
     # compile for evaluate
     model.compile(
