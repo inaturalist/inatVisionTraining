@@ -13,7 +13,25 @@ import tensorflow as tf
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
-from datasets import inat_dataset
+from datasets.inat_dataset import process_row
+
+
+def load_test_ds(dataset_json_path):
+    """
+    don't use the standard inat dataset loader.
+    we load our test ds differently because we need insight into the imageids
+    for post eval analysis.
+    """
+    df = pd.read_json(dataset_json_path)
+    imageids = list(df["id"])
+
+    ds = tf.data.Dataset.from_tensor_slices((df["filename"], df[label_column_name]))
+
+    process_partial = partial(process_row, num_classes=num_classes)
+    ds = ds.map(process_partial, num_parallel_calls=AUTOTUNE)
+    ds = ds.map(lambda x, y: (tf.image.resize(x, image_size), y))
+
+    return (ds, num_examples, imageids)
 
 
 def main():
@@ -56,25 +74,14 @@ def main():
     if not os.path.exists(config["TEST_DATA"]):
         print("Training data file doesn't exist.")
         return
-    (test_ds, num_test_examples) = inat_dataset.make_dataset(
-        config["TEST_DATA"],
-        image_size=config["IMAGE_SIZE"],
-        batch_size=config["BATCH_SIZE"],
-        label_column_name=config["LABEL_COLUMN_NAME"],
-        repeat_forever=False,
-        augment=False,
-    )
-    if test_ds is None:
-        print("No training dataset.")
-        return
-    if num_test_examples == 0:
-        print("No training examples.")
-        return
+    (test_ds, num_test_examples, imageids) = load_test_ds(config["TEST_DATA"])
+    assert test_ds is not None, "No training dataset"
+    assert num_test_examples != 0, "num test examples is zero"
+    assert imageids is not None, "No imageids"
 
     # load the model
     model = tf.keras.applications.Xception(weights=None, classes=config["NUM_CLASSES"])
-    if model is None:
-        assert False, "No model to train."
+    assert model is not None, "No model to train"
 
     # load the weights
     weights = (
@@ -103,7 +110,9 @@ def main():
             yhat = np.argmax(model.predict(x), axis=1)
             all_yhat = np.append(all_yhat, yhat)
 
-        np.savez_compressed(args.save_file, all_true=all_true, all_yhat=all_yhat)
+        np.savez_compressed(
+            args.save_file, all_true=all_true, all_yhat=all_yhat, imageids=imageids
+        )
 
     else:
         # the simpler approach, simply eval the test dataset
