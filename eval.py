@@ -16,13 +16,14 @@ AUTOTUNE = tf.data.experimental.AUTOTUNE
 from datasets.inat_dataset import process_row
 
 
-def load_test_ds(dataset_json_path):
+def load_test_ds(dataset_json_path, label_column_name, image_size):
     """
     don't use the standard inat dataset loader.
     we load our test ds differently because we need insight into the imageids
     for post eval analysis.
     """
     df = pd.read_json(dataset_json_path)
+    num_classes = len(df[label_column_name].unique())
     imageids = list(df["id"])
 
     ds = tf.data.Dataset.from_tensor_slices((df["filename"], df[label_column_name]))
@@ -74,7 +75,11 @@ def main():
     if not os.path.exists(config["TEST_DATA"]):
         print("Training data file doesn't exist.")
         return
-    (test_ds, num_test_examples, imageids) = load_test_ds(config["TEST_DATA"])
+    (test_ds, num_test_examples, imageids) = load_test_ds(
+        config["TEST_DATA"],
+        label_column_name=config["LABEL_COLUMN_NAME"],
+        image_size=config["IMAGE_SIZE"],
+    )
     assert test_ds is not None, "No training dataset"
     assert num_test_examples != 0, "num test examples is zero"
     assert imageids is not None, "No imageids"
