@@ -177,7 +177,8 @@ def main():
         # calculation is: for taxa with <= 1k photos, include them all
         # in steps per epoch, for taxa with > 1k photos, include 1k
         # steps per epoch, then divide by batch size.
-        STEPS_PER_EPOCH = 479972 / config["BATCH_SIZE"]
+        #STEPS_PER_EPOCH = np.ceil(config["NUM_CLASSES"] * 50 / config["BATCH_SIZE"])
+        STEPS_PER_EPOCH = np.ceil(num_train_examples / config["BATCH_SIZE"])
         if "VAL_STEPS_PER_EPOCH" in config:
             VAL_STEPS = config["VAL_STEPS_PER_EPOCH"]
         else:

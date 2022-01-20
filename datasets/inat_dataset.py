@@ -109,14 +109,19 @@ def make_dataset(path, label_column_name, image_size=(299,299), batch_size=32, r
 
     # we need to do complete shuffling in order to resample fairly
     # as well as to do partial batches of validation data
-    ds = ds.shuffle(buffer_size=len(df))
+    ds = ds.shuffle(buffer_size=len(df), reshuffle_each_iteration=True)
 
     if resample_dist:
         initial_dist = list(df[label_column_name].value_counts().sort_index() / sum(df[label_column_name].value_counts()))
 
+        target_dist_total = df[label_column_name].value_counts().clip(upper=1000).sum()
+        target_dist_counts = df[label_column_name].value_counts().clip(upper=1000).sort_index()
+        target_dist = list(target_dist_counts/target_dist_total)
+        num_examples = target_dist_total
+
         resampler = tf.data.experimental.rejection_resample(
             class_func=lambda x, y: tf.cast(y, tf.int32),
-            target_dist=[1/num_classes]*num_classes,
+            target_dist=target_dist,
             initial_dist=initial_dist
         )
         ds = ds.apply(resampler)
