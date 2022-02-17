@@ -114,8 +114,8 @@ def make_dataset(path, label_column_name, image_size=(299,299), batch_size=32, r
     if resample_dist:
         initial_dist = list(df[label_column_name].value_counts().sort_index() / sum(df[label_column_name].value_counts()))
 
-        target_dist_total = df[label_column_name].value_counts().clip(upper=1000).sum()
-        target_dist_counts = df[label_column_name].value_counts().clip(upper=1000).sort_index()
+        target_dist_total = df[label_column_name].value_counts().clip(upper=100_000).sum()
+        target_dist_counts = df[label_column_name].value_counts().clip(upper=100_000).sort_index()
         target_dist = list(target_dist_counts/target_dist_total)
         num_examples = target_dist_total
 
