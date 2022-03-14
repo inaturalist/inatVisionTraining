@@ -8,7 +8,7 @@ layout: default
 <ul>
   {% for experiment in site.experiments %}
     <li>
-      <h2><a href="{{ experiment.url }}">{{ experiment.name }}</a></h2>
+      <h2><a href="{{ site.baseurl }}{{ experiment.url }}">{{ experiment.name }}</a></h2>
       <p>{{ experiment.content | markdownify }}</p>
     </li>
   {% endfor %}

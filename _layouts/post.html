@@ -8,7 +8,7 @@ layout: default
   <br />
   {% assign experiment = site.experiments | where: 'short_name', page.experiment | first %}
   {% if experiment %}
-  Experiment: <a href="{{ experiment.url }}">{{ experiment.name }}</a>
+  Experiment: <a href="{{ site.baseurl }}{{ experiment.url }}">{{ experiment.name }}</a>
   <br />
   {% endif %}
   Server: {{ page.server }}
