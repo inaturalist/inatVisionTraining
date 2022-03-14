@@ -1,0 +1,23 @@
+---
+title: Training Runs
+layout: default
+---
+<h2 class="pb-2 border-bottom">Training Runs</h2>
+
+<div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+  {% for post in site.posts %}
+      <div class="feature col">
+        {% if post.active %}        
+        <h2><i class="fa-solid fa-robot fa-l"></i> {{ post.title }}</h2>
+        {% else %}
+        <h2>{{ post.title }}</h2>
+        {% endif %}
+        <p>{{ post.excerpt }}</p>
+
+        <a href="{{ post.url }}" class="icon-link">
+          More info
+          <svg class="bi" width="1em" height="1em"><use xlink:href="#chevron-right"></use></svg>
+        </a>
+      </div>
+    {% endfor %}
+</div>

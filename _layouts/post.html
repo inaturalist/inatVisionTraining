@@ -1,0 +1,31 @@
+---
+layout: default
+---
+<h1>{{ page.title }}</h1>
+
+<p>
+  Last updated: {{ page.updated | date_to_string }}
+  <br />
+  {% assign experiment = site.experiments | where: 'short_name', page.experiment | first %}
+  {% if experiment %}
+  Experiment: <a href="{{ experiment.url }}">{{ experiment.name }}</a>
+  <br />
+  {% endif %}
+  Server: {{ page.server }}
+  <br />
+  Export / dataset: {{ page.export }}
+  <br />
+  Actively training: {{ page.active }}
+  <br />
+  Epochs: {{ page.current_epoch }} / {{ page.planned_epochs }}
+  <br />
+  Validation accuracy: {{ page.val_accuracy }}%
+  <br />
+  TensorFlow version: {{ page.tf_version }}
+  <br />
+  Python version: {{ page.python_version }}
+  <br />
+  inatVisionTraining version: <a href="https://github.com/inaturalist/inatVisionTraining/commit/{{ page.inatVisionTraining_version }}">{{ page.inatVisionTraining_version }}</a>
+</p>
+
+{{ content }}

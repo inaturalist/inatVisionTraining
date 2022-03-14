@@ -1,0 +1,10 @@
+- name: Home
+  link: /
+- name: About
+  link: /about.html
+- name: Training Runs
+  link: /blog.html
+- name: Experiments
+  link: /experiments.html
+- name: Datasets
+  link: /datasets.html

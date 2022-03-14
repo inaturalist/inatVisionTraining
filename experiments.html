@@ -1,0 +1,15 @@
+---
+title: Experiments
+layout: default
+---
+
+<h1>Experiments</h1>
+
+<ul>
+  {% for experiment in site.experiments %}
+    <li>
+      <h2><a href="{{ experiment.url }}">{{ experiment.name }}</a></h2>
+      <p>{{ experiment.content | markdownify }}</p>
+    </li>
+  {% endfor %}
+</ul>

@@ -1,0 +1,8 @@
+<ul class="nav justify-content-center">
+  {% for item in site.data.navigation %}
+    <li class="nav-item">
+        <a href="{{ item.link }}" class="nav-link{% if page.url == item.link %} disabled{% endif %}">{{ item.name }}</a>
+    </li>
+
+  {% endfor %}
+</ul>
