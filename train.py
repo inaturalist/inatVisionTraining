@@ -131,7 +131,8 @@ def main():
             dropout_pct = config["DROPOUT_PCT"],
             n_classes = config["NUM_CLASSES"],
             input_dtype = tf.float16 if config["TRAIN_MIXED_PRECISION"] else tf.float32,
-            train_full_network = True
+            train_full_network = False,
+            ckpt = config["CHECKPOINT"]
         )
 
         # load pretrained model
