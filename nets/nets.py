@@ -6,7 +6,6 @@ def make_neural_network(
     base_arch_name,
     weights,
     image_size,
-    dropout_pct,
     n_classes,
     input_dtype,
     train_full_network,

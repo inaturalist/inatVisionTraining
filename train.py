@@ -129,7 +129,6 @@ def main():
             base_arch_name="xception",
             weights=config["PRETRAINED_MODEL"],
             image_size=config["IMAGE_SIZE"],
-            dropout_pct=config["DROPOUT_PCT"],
             n_classes=config["NUM_CLASSES"],
             input_dtype=tf.float16 if config["TRAIN_MIXED_PRECISION"] else tf.float32,
             train_full_network=config["TRAIN_FULL_MODEL"],
