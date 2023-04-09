@@ -166,8 +166,19 @@ def main():
         # setup callbacks
         training_callbacks = make_training_callbacks(config)
 
+        # training & val step counts
         STEPS_PER_EPOCH = np.ceil(num_train_examples / config["BATCH_SIZE"])
-        VAL_STEPS = np.ceil(num_val_examples / config["BATCH_SIZE"])
+        VAL_IMAGE_COUNT = (
+            config["VALIDATION_PASS_SIZE"]
+            if config["VALIDATION_PASS_SIZE"] is not None
+            else num_val_examples
+        )
+        VAL_STEPS = np.ceil(VAL_IMAGE_COUNT / config["BATCH_SIZE"])
+        print(
+            "{} val steps for {} val pass images of {} total val images.".format(
+                VAL_STEPS, VAL_IMAGE_COUNT, num_val_examples
+            )
+        )
 
         start = time.time()
         history = model.fit(
