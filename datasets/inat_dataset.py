@@ -103,7 +103,7 @@ def _prepare_dataset(
         )
     else:
         # central crop
-        # ds = ds.map(lambda x,y: (tf.image.central_crop(x, 0.875), y))
+        ds = ds.map(lambda x, y: (tf.image.central_crop(x, 0.875), y))
         # resize to image size expected by network
         ds = ds.map(lambda x, y: (tf.image.resize(x, image_size), y))
 
