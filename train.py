@@ -118,7 +118,7 @@ def main():
     with strategy.scope():
         # create optimizer for neural network
         optimizer = keras.optimizers.RMSprop(
-            lr=config["INITIAL_LEARNING_RATE"],
+            learning_rate=config["INITIAL_LEARNING_RATE"],
             rho=config["RMSPROP_RHO"],
             momentum=config["RMSPROP_MOMENTUM"],
             epsilon=config["RMSPROP_EPSILON"],
