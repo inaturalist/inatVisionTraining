@@ -19,14 +19,12 @@ def make_neural_network(
 
     input_layer = keras.layers.Input(shape=image_size_with_channels, dtype=input_dtype)
     base_model = base_arch(input_tensor=input_layer, weights=weights, include_top=False)
+    base_model.trainable = train_full_network
+
     avg = keras.layers.GlobalAveragePooling2D()(base_model.output)
     dropout = keras.layers.Dropout(dropout_pct)(avg)
     x = keras.layers.Dense(n_classes, name="dense_logits")(dropout)
     output = keras.layers.Activation("softmax", dtype="float32", name="predictions")(x)
     model = keras.Model(inputs=base_model.input, outputs=output)
-
-    if train_full_network:
-        for layer in base_model.layers:
-            layer.trainable = True
 
     return model
