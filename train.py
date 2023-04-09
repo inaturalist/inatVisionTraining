@@ -134,14 +134,6 @@ def main():
             ckpt=config["CHECKPOINT"],
         )
 
-        # load pretrained model
-        if (
-            False
-            and config["PRETRAINED_MODEL"] != "imagenet"
-            and os.path.exists(config["PRETRAINED_MODEL"])
-        ):
-            model.load_weights(config["PRETRAINED_MODEL"], by_name=True)
-
         if model is None:
             print("No model to train.")
             return
