@@ -85,6 +85,7 @@ def main():
         label_column_name=config["LABEL_COLUMN_NAME"],
         image_size=config["IMAGE_SIZE"],
         batch_size=config["BATCH_SIZE"],
+        shuffle_buffer_size=config["SHUFFLE_BUFFER_SIZE"],
         repeat_forever=True,
         augment=True,
     )
@@ -103,6 +104,7 @@ def main():
         label_column_name=config["LABEL_COLUMN_NAME"],
         image_size=config["IMAGE_SIZE"],
         batch_size=config["BATCH_SIZE"],
+        shuffle_buffer_size=config["SHUFFLE_BUFFER_SIZE"],
         repeat_forever=True,
         augment=False,
     )
