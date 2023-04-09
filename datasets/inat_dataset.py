@@ -53,7 +53,7 @@ def _decode_img(img):
     return img
 
 
-def process_row(file_path, label, num_classes):
+def _process(file_path, label, num_classes):
     # load the raw data from the file as a string
     img = tf.io.read_file(file_path)
     img = _decode_img(img)
@@ -134,7 +134,7 @@ def make_dataset(
 
     ds = tf.data.Dataset.from_tensor_slices((df["filename"], df[label_column_name]))
 
-    process_partial = partial(process_row, num_classes=num_classes)
+    process_partial = partial(_process, num_classes=num_classes)
     ds = ds.map(process_partial, num_parallel_calls=AUTOTUNE)
 
     ds = _prepare_dataset(
