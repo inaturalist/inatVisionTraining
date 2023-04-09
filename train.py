@@ -33,6 +33,7 @@ def make_training_callbacks(config):
             profile_batch=0,
             embeddings_freq=0,
             embeddings_metadata={},
+            write_steps_per_second=True,
         ),
         tf.keras.callbacks.LearningRateScheduler(lr_scheduler_fn, verbose=1),
         tf.keras.callbacks.ModelCheckpoint(
