@@ -62,8 +62,8 @@ def _process(file_path, label, num_classes):
     return img, label
 
 
-def _load_dataframe(dataset_json_path):
-    df = pd.read_json(dataset_json_path)
+def _load_dataframe(dataset_csv_path):
+    df = pd.read_csv(dataset_csv_path)
 
     # sort the dataset
     df = df.sample(frac=1, random_state=42)
