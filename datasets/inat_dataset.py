@@ -75,7 +75,7 @@ def _prepare_dataset(
     image_size=(299, 299),
     batch_size=32,
     repeat_forever=True,
-    shuffle_buffer_size=1000,
+    shuffle_buffer_size=10_000,
     augment=False,
 ):
     # shuffle
