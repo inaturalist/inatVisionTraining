@@ -42,7 +42,7 @@ def make_training_callbacks(config):
             monitor="val_accuracy",
             verbose=1,
         ),
-        tf.keras.callbacks.experimental.BackupAndRestore(
+        tf.keras.callbacks.BackupAndRestore(
             backup_dir=config["BACKUP_DIR"],
         ),
     ]
