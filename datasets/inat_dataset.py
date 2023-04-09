@@ -14,9 +14,8 @@ def _rotate(x: tf.Tensor, y: tf.Tensor) -> (tf.Tensor, tf.Tensor):
 
 
 def _flip(x: tf.Tensor, y: tf.Tensor) -> (tf.Tensor, tf.Tensor):
-    x = tf.image.random_flip_left_right(x)
     # right left only
-    # x = tf.image.random_flip_up_down(x)
+    x = tf.image.random_flip_left_right(x)
     return x, y
 
 
