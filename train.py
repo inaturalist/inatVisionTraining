@@ -135,8 +135,7 @@ def main():
         )
 
         if model is None:
-            print("No model to train.")
-            return
+            assert (False, "No model to train.")
 
         if config["DO_LABEL_SMOOTH"]:
             if config["LABEL_SMOOTH_MODE"] == "flat":
@@ -149,8 +148,7 @@ def main():
                 # with parent/heirarchical label smoothing
                 # we can't do it in the loss function, we have
                 # to adjust the labels in the dataset
-                print("Unsupported label smoothing mode.")
-                return
+                assert (False, "Unsupported label smoothing mode.")
         else:
             loss = tf.keras.losses.CategoricalCrossentropy()
 
