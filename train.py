@@ -22,6 +22,7 @@ def make_training_callbacks(config):
             config["LR_DECAY_FACTOR"], epoch // config["EPOCHS_PER_LR_DECAY"]
         )
 
+    checkpoint_file_name = "checkpoint-{epoch:02d}-{val_accuracy:.2f}"
     callbacks = [
         keras.callbacks.TensorBoard(
             log_dir=config["TENSORBOARD_LOG_DIR"],
@@ -35,9 +36,9 @@ def make_training_callbacks(config):
         ),
         tf.keras.callbacks.LearningRateScheduler(lr_scheduler_fn, verbose=1),
         tf.keras.callbacks.ModelCheckpoint(
-            filepath=config["CHECKPOINT_DIR"],
+            filepath=os.path.join(config["CHECKPOINT_DIR"], checkpoint_file_name),
             save_weights_only=True,
-            save_best_only=True,
+            save_best_only=False,
             monitor="val_accuracy",
             verbose=1,
         ),
