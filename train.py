@@ -132,7 +132,7 @@ def main():
             n_classes=config["NUM_CLASSES"],
             input_dtype=tf.float16 if config["TRAIN_MIXED_PRECISION"] else tf.float32,
             train_full_network=config["TRAIN_FULL_MODEL"],
-            ckpt=config["CHECKPOINT"],
+            ckpt=config["CHECKPOINT"] if "CHECKPOINT" in config else None,
         )
 
         if model is None:
