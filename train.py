@@ -67,10 +67,8 @@ def main():
         config = yaml.safe_load(f)
 
     if config["TRAIN_MIXED_PRECISION"]:
-        from tensorflow.keras.mixed_precision import experimental as mixed_precision
-
-        policy = mixed_precision.Policy("mixed_float16")
-        mixed_precision.set_policy(policy)
+        policy = tf.keras.mixed_precision.Policy("mixed_float16")
+        tf.keras.mixed_precision.set_global_policy(policy)
 
     if config["MULTIGPU"]:
         strategy = tf.distribute.MirroredStrategy()
