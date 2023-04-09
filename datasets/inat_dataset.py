@@ -75,12 +75,8 @@ def _prepare_dataset(
     image_size=(299, 299),
     batch_size=32,
     repeat_forever=True,
-    shuffle_buffer_size=10_000,
     augment=False,
 ):
-    # shuffle
-    ds = ds.shuffle(buffer_size=shuffle_buffer_size)
-
     # do transforms for augment or not
     if augment:
         # crop 100% of the time
@@ -125,6 +121,7 @@ def make_dataset(
     label_column_name,
     image_size=(299, 299),
     batch_size=32,
+    shuffle_buffer_size=10_000,
     repeat_forever=True,
     augment=False,
 ):
@@ -133,6 +130,8 @@ def make_dataset(
     num_classes = len(df[label_column_name].unique())
 
     ds = tf.data.Dataset.from_tensor_slices((df["filename"], df[label_column_name]))
+
+    ds = ds.shuffle(buffer_size=shuffle_buffer_size, reshuffle_each_iteration=True)
 
     process_partial = partial(_process, num_classes=num_classes)
     ds = ds.map(process_partial, num_parallel_calls=AUTOTUNE)
