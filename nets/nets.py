@@ -2,7 +2,15 @@ import tensorflow as tf
 from tensorflow import keras
 
 
-def make_neural_network(base_arch_name, weights, image_size, dropout_pct, n_classes, input_dtype, train_full_network):
+def make_neural_network(
+    base_arch_name,
+    weights,
+    image_size,
+    dropout_pct,
+    n_classes,
+    input_dtype,
+    train_full_network,
+):
     image_size_with_channels = image_size + [3]
     base_arch = keras.applications.Xception if base_arch_name == "xception" else None
     if not base_arch:
