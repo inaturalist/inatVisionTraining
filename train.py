@@ -122,6 +122,10 @@ def main():
             momentum=config["RMSPROP_MOMENTUM"],
             epsilon=config["RMSPROP_EPSILON"],
         )
+        
+        # loss scale optimizer to prevent numeric underflow
+        if config["TRAIN_MIXED_PRECISION"]:
+            optimizer = tf.keras.mixed_precision.LossScaleOptimizer(optimizer)
 
         # create neural network
         model = nets.make_neural_network(
