@@ -10,6 +10,8 @@ def make_neural_network(
     input_dtype,
     train_full_network,
     ckpt,
+    factorize=False,
+    fact_rank=None
 ):
     image_size_with_channels = image_size + [3]
     base_arch = keras.applications.Xception if base_arch_name == "xception" else None
@@ -27,9 +29,17 @@ def make_neural_network(
         base_model.load_weights(ckpt)
 
     x = base_model(inputs)
-    x = keras.layers.GlobalAveragePooling2D()(x)
-    x = keras.layers.Dense(n_classes, name="dense_logits")(x)
-    output = keras.layers.Activation("softmax", dtype="float32", name="predictions")(x)
+    
+    if factorize and fact_rank is not None:
+        x = keras.layers.GlobalAveragePooling2D(keepdims=True)(x)
+        svd_u = keras.layers.Conv2D(fact_rank, [1, 1])(x)
+        logits = keras.layers.Conv2D(n_classes, [1, 1])(svd_u)
+        logits = keras.layers.Reshape([n_classes])(logits)
+    else:
+        x = keras.layers.GlobalAveragePooling2D()(x)
+        logits = keras.layers.Dense(n_classes, name="dense_logits")(x)
+
+    output = keras.layers.Activation("softmax", dtype="float32", name="predictions")(logits)
     model = keras.Model(inputs=inputs, outputs=output)
 
     return model

@@ -136,6 +136,8 @@ def main():
             input_dtype=tf.float16 if config["TRAIN_MIXED_PRECISION"] else tf.float32,
             train_full_network=config["TRAIN_FULL_MODEL"],
             ckpt=config["CHECKPOINT"] if "CHECKPOINT" in config else None,
+            factorize=config["FACTORIZE_FINAL_LAYER"] if "FACTORIZE_FINAL_LAYER" in config else False,
+            fact_rank=config["FACT_RANK"] if "FACT_RANK" in config else None,
         )
 
         if model is None:
