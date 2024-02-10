@@ -9,11 +9,19 @@ import json
 
 import tensorflow as tf
 from tensorflow import keras
+import wandb
+from wandb.keras import WandbMetricsLogger
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 from datasets import inat_dataset
 from nets import nets
+
+class LRLogger(tf.keras.callbacks.Callback):
+    def on_epoch_begin(self, epoch, logs):
+        lr = self.model.optimizer.learning_rate
+        print("learning rate is {}".format(lr))
+        wandb.log({"lr": lr}, commit=False)
 
 
 def make_training_callbacks(config):
@@ -46,6 +54,8 @@ def make_training_callbacks(config):
         tf.keras.callbacks.BackupAndRestore(
             backup_dir=config["BACKUP_DIR"],
         ),
+        WandbMetricsLogger(log_freq=5),
+        LRLogger(),
     ]
 
     return callbacks
@@ -65,6 +75,11 @@ def main():
         return
     with open(args.config_file, "r") as f:
         config = yaml.safe_load(f)
+
+    wandb.init(
+        project="iNat CV",
+        config=config
+    )
 
     if config["TRAIN_MIXED_PRECISION"]:
         policy = tf.keras.mixed_precision.Policy("mixed_float16")
@@ -201,6 +216,7 @@ def main():
         print(history.history)
         model.save(config["FINAL_SAVE_DIR"])
 
+    wandb.finish()
 
 if __name__ == "__main__":
     main()
