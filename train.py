@@ -54,7 +54,7 @@ def make_training_callbacks(config):
         tf.keras.callbacks.BackupAndRestore(
             backup_dir=config["BACKUP_DIR"],
         ),
-        WandbMetricsLogger(log_freq=5),
+        WandbMetricsLogger(log_freq=config["WANDB_LOG_FREQ"]),
         LRLogger(),
     ]
 
@@ -77,7 +77,7 @@ def main():
         config = yaml.safe_load(f)
 
     wandb.init(
-        project="iNat CV",
+        project=config["WANDB_PROJECT"],
         config=config
     )
 

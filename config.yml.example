@@ -1,6 +1,11 @@
 
-#### EXPERIMENT PARAMETERS
+### WANDB METADATA
 
+# this will be used to associate this run with a wandb project
+WANDB_PROJECT         : "iNat CV"
+WANDB_LOG_FREQ        : 100
+
+#### EXPERIMENT PARAMETERS
 TENSORBOARD_LOG_DIR   : "/data-ssd/alex/experiments/slim_export/1608157217/log_dir"
 CHECKPOINT_DIR        : "/data-ssd/alex/experiments/slim_export/1608157217/checkpoints/ckpt"
 FINAL_SAVE_DIR        : "/data-ssd/alex/experiments/slim_export/1608157217/final_model/final"
