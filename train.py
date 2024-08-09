@@ -10,7 +10,7 @@ import json
 import tensorflow as tf
 from tensorflow import keras
 import wandb
-from wandb.keras import WandbMetricsLogger
+from wandb.integration.keras import WandbMetricsLogger
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
