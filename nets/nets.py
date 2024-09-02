@@ -25,7 +25,18 @@ def make_neural_network(
     base_model = base_arch(
         input_shape=image_size_with_channels, weights=weights, include_top=False
     )
-    base_model.trainable = train_full_network
+    if train_full_network:
+        # still don't want to train batchnorm layers
+        for layer in base_model:
+            if isinstance(layer, tf.keras.layers.BatchNormalization):
+                print("freezing layer {}.")
+                layer.trainable = False
+            else:
+                print(f"unfreezing layer {}.") 
+                layer.trainable = True
+    else:
+        base_model.trainable = False
+    
     if ckpt is not None:
         base_model.load_weights(ckpt)
 
