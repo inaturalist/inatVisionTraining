@@ -140,7 +140,9 @@ def main():
         
         # loss scale optimizer to prevent numeric underflow
         if config["TRAIN_MIXED_PRECISION"]:
-            optimizer = tf.keras.mixed_precision.LossScaleOptimizer(optimizer)
+            pass
+            # this should be built into the mp policy now?
+            #optimizer = tf.keras.mixed_precision.LossScaleOptimizer(optimizer)
 
         # create neural network
         model = nets.make_neural_network(
