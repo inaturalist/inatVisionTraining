@@ -40,6 +40,8 @@ EPOCHS_PER_LR_DECAY   : 4
 
 #### MODEL PARAMETERS
 
+activation          : "softmax" # or null (python None) for logits
+
 # neural network architecture
 MODEL_NAME            : "xception"
 
