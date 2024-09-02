@@ -156,17 +156,24 @@ def main():
             ckpt=config["CHECKPOINT"] if "CHECKPOINT" in config else None,
             factorize=config["FACTORIZE_FINAL_LAYER"] if "FACTORIZE_FINAL_LAYER" in config else False,
             fact_rank=config["FACT_RANK"] if "FACT_RANK" in config else None,
+            activation=config["ACTIVATION"] if "ACTIVATION" in config else None,
         )
-
+        
         if model is None:
             assert False, "No model to train."
+
+        if config["ACTIVATION"] is None:
+            from_logits = True
+        else:
+            from_logits = False
 
         if config["DO_LABEL_SMOOTH"]:
             if config["LABEL_SMOOTH_MODE"] == "flat":
                 # with flat label smoothing we can do it all
                 # in the loss function
                 loss = tf.keras.losses.CategoricalCrossentropy(
-                    label_smoothing=config["LABEL_SMOOTH_PCT"]
+                    label_smoothing=config["LABEL_SMOOTH_PCT"],
+                    from_logits=from_logits
                 )
             else:
                 # with parent/heirarchical label smoothing
@@ -174,7 +181,7 @@ def main():
                 # to adjust the labels in the dataset
                 assert False, "Unsupported label smoothing mode."
         else:
-            loss = tf.keras.losses.CategoricalCrossentropy()
+            loss = tf.keras.losses.CategoricalCrossentropy(from_logits=from_logits)
 
         # compile the network for training
         model.compile(
