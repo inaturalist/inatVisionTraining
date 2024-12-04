@@ -48,7 +48,7 @@ def make_neural_network(
         logits = keras.layers.Conv2D(n_classes, [1, 1])(svd_u)
         logits = keras.layers.Reshape([n_classes])(logits)
     else:
-        x = keras.layers.GlobalAveragePooling2D()(x)
+        x = keras.layers.GlobalAveragePooling2D(name="final_global_pool")(x)
         logits = keras.layers.Dense(n_classes, name="dense_logits")(x)
 
     if activation is not None:
