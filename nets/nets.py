@@ -56,7 +56,7 @@ def make_neural_network(
             activation,
             dtype="float32",
             name="predictions"
-        )
+        )(logits)
         model = keras.Model(inputs=inputs, outputs=output)
     else:
         model = keras.Model(inputs=inputs, outputs=logits)
