@@ -47,7 +47,7 @@ def make_training_callbacks(config):
         tf.keras.callbacks.ModelCheckpoint(
             filepath=os.path.join(config["CHECKPOINT_DIR"], checkpoint_file_name),
             save_weights_only=True,
-            save_best_only=False,
+            save_best_only=True,
             monitor="val_accuracy",
             verbose=1,
         ),
