@@ -62,8 +62,13 @@ def _process(file_path, label, num_classes):
     return img, label
 
 
-def _load_dataframe(dataset_csv_path):
-    df = pd.read_csv(dataset_csv_path)
+def _load_dataframe(dataset_file_path):
+    if dataset_file_path.endswith(".csv"):
+        df = pd.read_csv(dataset_file_path)
+    elif dataset_file_path.endswith(".parquet"):
+        df = pd.read_parquet(dataset_file_path)
+    else:
+        assert False, "Expected .csv or .parquet"
 
     # sort the dataset
     df = df.sample(frac=1, random_state=42)
