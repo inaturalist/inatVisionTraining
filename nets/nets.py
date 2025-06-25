@@ -29,10 +29,8 @@ def make_neural_network(
         # still don't want to train batchnorm layers
         for layer in base_model.layers:
             if isinstance(layer, tf.keras.layers.BatchNormalization):
-                print(f"freezing layer {layer}.")
                 layer.trainable = False
             else:
-                print(f"unfreezing layer {layer}.") 
                 layer.trainable = True
     else:
         base_model.trainable = False
