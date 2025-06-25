@@ -224,7 +224,7 @@ def main():
         end = time.time()
         print("time elapsed during fit: {:.1f}".format(end - start))
         print(history.history)
-        model.save(config["FINAL_SAVE_DIR"])
+        model.save(config["FINAL_SAVE_PATH"])
 
     wandb.finish()
 
