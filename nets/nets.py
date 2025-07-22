@@ -41,10 +41,18 @@ def make_neural_network(
     x = base_model(inputs)
     
     if factorize and fact_rank is not None:
-        x = keras.layers.GlobalAveragePooling2D(keepdims=True)(x)
-        svd_u = keras.layers.Conv2D(fact_rank, [1, 1])(x)
-        logits = keras.layers.Conv2D(n_classes, [1, 1])(svd_u)
-        logits = keras.layers.Reshape([n_classes])(logits)
+        x = keras.layers.GlobalAveragePooling2D(
+            keepdims=True, name="final_global_pool"
+        )(x)
+        svd_u = keras.layers.Conv2D(
+            fact_rank, [1, 1], name="svd_u"
+        )(x)
+        logits = keras.layers.Conv2D(
+            n_classes, [1, 1], name="2d_logits"
+        )(svd_u)
+        logits = keras.layers.Reshape(
+            [n_classes], name="dense_logits"
+        )(logits)
     else:
         x = keras.layers.GlobalAveragePooling2D(name="final_global_pool")(x)
         logits = keras.layers.Dense(n_classes, name="dense_logits")(x)
