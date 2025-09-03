@@ -14,16 +14,22 @@ def make_neural_network(
     fact_rank=None,
     activation=None
 ):
-    image_size_with_channels = image_size + [3]
-    base_arch = keras.applications.Xception if base_arch_name == "xception" else None
+    dynamic_input_size = (None, None, 3)
+    #image_size_with_channels = image_size + [3]
+    if base_arch_name == "xception":
+        base_arch = keras.applications.Xception
+    elif base_arch_name == "efficientnetv2_s":
+        base_arch = keras.applications.EfficientNetV2S
+    else:
+        base_arch = None
     if not base_arch:
         print("Unsupported base architecture.")
         return None
 
-    inputs = keras.layers.Input(shape=image_size_with_channels, dtype=input_dtype)
+    inputs = keras.layers.Input(shape=dynamic_input_size, dtype=input_dtype)
 
     base_model = base_arch(
-        input_shape=image_size_with_channels, weights=weights, include_top=False
+        input_shape=dynamic_input_size, weights=weights, include_top=False
     )
     if train_full_network:
         # still don't want to train batchnorm layers
@@ -55,7 +61,9 @@ def make_neural_network(
         )(logits)
     else:
         x = keras.layers.GlobalAveragePooling2D(name="final_global_pool")(x)
-        logits = keras.layers.Dense(n_classes, name="dense_logits")(x)
+        logits = keras.layers.Dense(n_classes, dtype="float32", name="dense_logits")(x)
+        print("head layer is:")
+        print(logits)
 
     if activation is not None:
         output = keras.layers.Activation(
@@ -66,5 +74,7 @@ def make_neural_network(
         model = keras.Model(inputs=inputs, outputs=output)
     else:
         model = keras.Model(inputs=inputs, outputs=logits)
+
+    print(model.summary())
         
     return model

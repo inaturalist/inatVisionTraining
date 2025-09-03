@@ -20,10 +20,10 @@ def _flip(x: tf.Tensor, y: tf.Tensor) -> (tf.Tensor, tf.Tensor):
 
 
 def _color(x: tf.Tensor, y: tf.Tensor) -> (tf.Tensor, tf.Tensor):
-    x = tf.image.random_hue(x, 0.08)
-    x = tf.image.random_saturation(x, 0.6, 1.6)
-    x = tf.image.random_brightness(x, 0.05)
-    x = tf.image.random_contrast(x, 0.7, 1.3)
+    x = tf.image.random_hue(x, 0.03)
+    x = tf.image.random_saturation(x, 0.85, 1.15)
+    x = tf.image.random_brightness(x, 0.09)
+    x = tf.image.random_contrast(x, 0.9, 1.1)
     return x, y
 
 
@@ -33,7 +33,7 @@ def _random_crop(x: tf.Tensor, y: tf.Tensor) -> (tf.Tensor, tf.Tensor):
     begin, size, bbox_for_draw = tf.image.sample_distorted_bounding_box(
         tf.shape(x),
         bounding_boxes=bbox,
-        area_range=(0.08, 1.0),
+        area_range=(0.5, 1.0),
         aspect_ratio_range=(0.75, 1.33),
         max_attempts=100,
         min_object_covered=0.1,
@@ -58,11 +58,11 @@ def _process(file_path, label, num_classes):
     img = tf.io.read_file(file_path)
     img = _decode_img(img)
     # 1 hot encode the label for dense
-    label = tf.one_hot(label, num_classes)
+    #label = tf.one_hot(label, num_classes)
     return img, label
 
 
-def _load_dataframe(dataset_file_path):
+def _load_dataframe(dataset_file_path, class_balance=None):
     if dataset_file_path.endswith(".csv"):
         df = pd.read_csv(dataset_file_path)
     elif dataset_file_path.endswith(".parquet"):
@@ -72,6 +72,9 @@ def _load_dataframe(dataset_file_path):
 
     # sort the dataset
     df = df.sample(frac=1, random_state=42)
+    if class_balance is not None:
+        df = df.groupby("leaf_class_id", group_keys=False).head(50)
+
     return df
 
 
@@ -83,7 +86,11 @@ def _prepare_dataset(
     augment=False,
 ):
     # do transforms for augment or not
-    if augment:
+    if augment == "light":
+        ds = ds.map(lambda x, y: _flip(x, y), num_parallel_calls=AUTOTUNE)
+        ds = ds.map(lambda x, y: (tf.image.central_crop(x, 0.875), y))
+        ds = ds.map(lambda x, y: (tf.image.resize(x, image_size), y))
+    elif augment == "full":
         # crop 100% of the time
         ds = ds.map(lambda x, y: _random_crop(x, y), num_parallel_calls=AUTOTUNE)
         # flip 50% of the time
@@ -92,7 +99,7 @@ def _prepare_dataset(
         # do color 30% of the time
         ds = ds.map(
             lambda x, y: tf.cond(
-                tf.random.uniform([], 0, 1) > 0.7, lambda: _color(x, y), lambda: (x, y)
+                tf.random.uniform([], 0, 1) > 0.5, lambda: _color(x, y), lambda: (x, y)
             ),
             num_parallel_calls=AUTOTUNE,
         )
@@ -107,6 +114,10 @@ def _prepare_dataset(
         ds = ds.map(lambda x, y: (tf.image.central_crop(x, 0.875), y))
         # resize to image size expected by network
         ds = ds.map(lambda x, y: (tf.image.resize(x, image_size), y))
+
+    ds = ds.map(
+        lambda x, y: (x * 255.0, y), num_parallel_calls=AUTOTUNE
+    )
 
     # Repeat forever
     if repeat_forever:
@@ -129,8 +140,9 @@ def make_dataset(
     shuffle_buffer_size=10_000,
     repeat_forever=True,
     augment=False,
+    class_balance=None
 ):
-    df = _load_dataframe(path)
+    df = _load_dataframe(path, class_balance)
     num_examples = len(df)
     num_classes = len(df[label_column_name].unique())
 
