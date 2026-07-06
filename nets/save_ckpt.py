@@ -1,0 +1,68 @@
+import tensorflow as tf
+from tensorflow import keras
+import numpy as np
+
+def make_neural_network(
+    base_arch_name,
+    weights,
+    image_size,
+    n_classes,
+    input_dtype,
+    train_full_network,
+    ckpt,
+    factorize=False,
+    fact_rank=None
+):
+    image_size_with_channels = image_size + [3]
+    if base_arch_name == "xception":
+        base_arch = keras.applications.Xception
+    else:
+        base_arch = None
+
+    if not base_arch:
+        print("Unsupported base architecture.")
+        return None
+
+    inputs = keras.layers.Input(shape=image_size_with_channels, dtype=input_dtype)
+
+    base_model = base_arch(
+        input_shape=image_size_with_channels, weights=weights, include_top=False
+    )
+    base_model.trainable = train_full_network
+    for layer in base_model.layers:
+        # leave batch norm layers frozen
+        if isinstance(layer, tf.keras.layers.BatchNormalization):
+            print("not training {}".format(layer))
+            layer.trainable = False
+    if ckpt is not None:
+        base_model.load_weights(ckpt)
+
+    x = base_model(inputs)
+    
+    
+    if factorize and fact_rank is not None:
+        x = keras.layers.GlobalAveragePooling2D(keepdims=True)(x)
+        svd_u = keras.layers.Conv2D(fact_rank, [1, 1])(x)
+        logits = keras.layers.Conv2D(n_classes, [1, 1])(svd_u)
+        logits = keras.layers.Reshape([n_classes])(logits)
+    else:
+        x = keras.layers.GlobalAveragePooling2D()(x)
+        logits = keras.layers.Dense(n_classes, name="dense_logits")(x)
+
+    output = keras.layers.Activation("softmax", dtype="float32", name="predictions")(logits)
+    model = keras.Model(inputs=inputs, outputs=output)
+    model.save("/disk/mnt/data/experiments/exporttest_full_iconic_spatial_20240405/big-model-baseline/model.h5")
+
+    return model
+
+make_neural_network(
+    "xception",
+    "imagenet",
+    [299, 299],
+    3500,
+    np.float32,
+    False,
+    "/disk/mnt/data/experiments/exporttest_full_iconic_spatial_20220405/big-model-baseline/checkpoints/ckpt",
+)
+
+
