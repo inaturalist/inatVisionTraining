@@ -1,55 +1,74 @@
+# Sample config for train.py, based on training-run-2.35.
+#
+# Replace X.YY, the export name and NUM_CLASSES for your run, or let
+# prepare_training.sh (computervision repo) do it.
+#
+# Training guide, step 6:
+# https://github.com/inaturalist/computervision/blob/main/doc/train_cv_model_guide.md
 
-### WANDB METADATA
+#### EXPERIMENT PARAMETERS
 
-# this will be used to associate this run with a wandb project
 WANDB_PROJECT         : "iNat CV"
 WANDB_LOG_FREQ        : 100
 
-#### EXPERIMENT PARAMETERS
-TENSORBOARD_LOG_DIR   : "/data-ssd/alex/experiments/slim_export/1608157217/log_dir"
-CHECKPOINT_DIR        : "/data-ssd/alex/experiments/slim_export/1608157217/checkpoints/ckpt"
-FINAL_SAVE_DIR        : "/data-ssd/alex/experiments/slim_export/1608157217/final_model/final"
-BACKUP_DIR            : "/data-ssd/alex/experiments/slim_export/1608157217/backup"
+# set by prepare_training.sh
+TENSORBOARD_LOG_DIR   : "/disk/mnt/data/experiments/training-run-X.YY/log_dir"
+CHECKPOINT_DIR        : "/disk/mnt/data/experiments/training-run-X.YY/checkpoints/ckpt"
+FINAL_SAVE_PATH       : "/disk/mnt/data/experiments/training-run-X.YY/final_model/saved_model.h5"
+BACKUP_DIR            : "/disk/mnt/data/experiments/training-run-X.YY/backup"
 
 
 #### DATASET PARAMETERS
 
-TRAINING_DATA         : "/data-ssd/alex/datasets/slim_export_20201213/train_cleaned.json"
-VAL_DATA              : "/data-ssd/alex/datasets/slim_export_20201213/val_cleaned.json"
-TEST_DATA             : "/data-ssd/alex/datasets/slim_export_20201213/test_cleaned.json"
-NUM_CLASSES           : 38148
-
+# set by prepare_training.sh
+TRAINING_DATA         : "/disk/mnt/data/exports/vision-export-YYYYMMDDHHMMSS-aka-X.YY/train_cleaned.parquet"
+VAL_DATA              : "/disk/mnt/data/exports/vision-export-YYYYMMDDHHMMSS-aka-X.YY/val_cleaned.parquet"
+# the test split is not built by the pipeline -- see the note in the guide
+TEST_DATA             : "/disk/mnt/data/exports/vision-export-YYYYMMDDHHMMSS-aka-X.YY/test_cleaned.parquet"
+# number of taxa, counted from train_cleaned.parquet once the export is cleaned
+NUM_CLASSES           : 0
+LABEL_COLUMN_NAME     : "leaf_class_id"
 
 #### TRAINING PARAMETERS
 
+# weights the training starts from
+CHECKPOINT            : "/disk/mnt/data/experiments/exporttest_full_iconic_spatial_20220405/big-model-baseline/checkpoints/ckpt"
+TRAIN_FULL_MODEL      : False
+VALIDATION_PASS_SIZE  : 50_000
+SHUFFLE_BUFFER_SIZE   : 200_000
+
 # training policy - only use mixed precision=true if you
 # have a recent NVIDIA GPU that supports CUDA 7.0 or later
-TRAIN_MIXED_PRECISION : True
+TRAIN_MIXED_PRECISION : False
+
+MULTIGPU : True
 
 # size of batch, per gpu
 BATCH_SIZE            : 256
 
 # number of training epochs
-NUM_EPOCHS            : 80
+NUM_EPOCHS            : 20
 
 # initial learning rate for the model
 INITIAL_LEARNING_RATE : 0.05
 LR_DECAY_FACTOR       : 0.94
 EPOCHS_PER_LR_DECAY   : 4
 
+# either "imagenet" or path to pretrained weights
+PRETRAINED_MODEL      : "imagenet"
+ACTIVATION            : Null
+
+DO_LABEL_SMOOTH       : True
+LABEL_SMOOTH_MODE     : "flat"
+LABEL_SMOOTH_PCT      : 0.1
 
 #### MODEL PARAMETERS
-
-activation          : "softmax" # or null (python None) for logits
 
 # neural network architecture
 MODEL_NAME            : "xception"
 
 # size of input
 IMAGE_SIZE            : [299,299]
-
-# dropout percentage for layer between pool & logits
-DROPOUT_PCT           : 0.5
 
 # optiimzer
 OPTIMIZER_NAME        : "rmsprop"
