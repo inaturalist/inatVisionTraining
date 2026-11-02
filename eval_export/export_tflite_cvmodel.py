@@ -24,7 +24,6 @@ def main(keras_model, output):
     quantized_model = converter.convert()
 
     print("Saving tflite model")
-    export_file = "model_exports/INatVision_2_23_mobile_8bit.tflite"
     with open(output, 'wb') as f:
         f.write(quantized_model)
 
